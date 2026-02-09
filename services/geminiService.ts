@@ -1,5 +1,5 @@
 
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenAI, Type, GenerateContentResponse } from "@google/genai";
 import { Scene, Assets, GenerationSettings, ProductContext } from "../types";
 import { analyzeProductIdentity, getConsistencyPrompt, ProductIdentity } from "./productAnalyzer";
 
@@ -14,7 +14,8 @@ const getApiKey = (): string => {
   }
 
   // Priority 2: Environment variable (fallback)
-  const envApiKey = import.meta.env.GEMINI_API_KEY;
+  // Support both VITE_ prefixed (exposed to client) and standard env vars (if configured in vite config define)
+  const envApiKey = import.meta.env.VITE_GEMINI_API_KEY || import.meta.env.GEMINI_API_KEY;
   if (!envApiKey) {
     throw new Error('⚠️ API Key chưa được cấu hình. Vui lòng nhập API key bằng nút "⚙️ API Key" ở góc trên bên phải.');
   }
@@ -41,7 +42,7 @@ export const splitPromptIntoScenes = async (
   context: ProductContext,
   templates: string[]
 ): Promise<Scene[]> => {
-  const ai = new GoogleGenerativeAI({ apiKey: getApiKey() });
+  const ai = new GoogleGenAI({ apiKey: getApiKey() });
   const sceneCount = context === 'LISTING' ? 6 : 5;
   const contextLabel = context === 'LISTING' ? "Amazon Product Listing Images (STANDARD)" : "Amazon A+ Content (BRAND STORY)";
 
@@ -122,7 +123,7 @@ export const splitPromptIntoScenes = async (
 };
 
 export const generatePromptsFromAssets = async (assets: Assets, context: ProductContext, templates: string[]): Promise<{ id: number; prompt: string }[]> => {
-  const ai = new GoogleGenerativeAI({ apiKey: getApiKey() });
+  const ai = new GoogleGenAI({ apiKey: getApiKey() });
   const sceneCount = context === 'LISTING' ? 6 : 5;
   const contextLabel = context === 'LISTING' ? "Standard Product Listing" : "Amazon A+ Content (Brand Story)";
   const negativeContext = context === 'LISTING' ? "Do not use A+ Content layouts." : "Do not use Standard White Background Listing layouts.";
@@ -189,7 +190,7 @@ export const generatePromptsFromAssets = async (assets: Assets, context: Product
 };
 
 export const generateProductTailoredPrompt = async (assets: Assets, referenceTemplate: string, context: ProductContext): Promise<string> => {
-  const ai = new GoogleGenerativeAI({ apiKey: getApiKey() });
+  const ai = new GoogleGenAI({ apiKey: getApiKey() });
   const contextLabel = context === 'LISTING' ? "Standard Product Listing" : "Amazon A+ Content";
   const parts: any[] = [];
 
@@ -217,7 +218,7 @@ export const generateSceneImage = async (
   isEditing: boolean,
   refinementInstruction?: string
 ): Promise<string> => {
-  const ai = new GoogleGenerativeAI({ apiKey: getApiKey() });
+  const ai = new GoogleGenAI({ apiKey: getApiKey() });
   const isHighQuality = settings.quality === "High";
   const modelName = isHighQuality ? "gemini-3-pro-image-preview" : "gemini-2.5-flash-image";
   const contextStyle = settings.productContext === 'LISTING' ? "E-commerce Listing: Clean studio, high contrast." : "Amazon A+ Content: Cinematic, luxury brand storytelling, editorial look.";
