@@ -9,6 +9,7 @@ const getApiKey = (): string => {
   if (typeof window !== 'undefined') {
     const userApiKey = localStorage.getItem('gemini_api_key');
     if (userApiKey && userApiKey.trim()) {
+      console.log("🔑 Using API Key from: LocalStorage");
       return userApiKey.trim();
     }
   }
@@ -16,6 +17,13 @@ const getApiKey = (): string => {
   // Priority 2: Environment variable (fallback)
   // Support both VITE_ prefixed (exposed to client) and standard env vars (if configured in vite config define)
   const envApiKey = import.meta.env.VITE_GEMINI_API_KEY || import.meta.env.GEMINI_API_KEY;
+
+  if (envApiKey) {
+    console.log("🔑 Using API Key from: Environment Variable");
+  } else {
+    console.error("❌ No API Key found in LocalStorage or Environment");
+  }
+
   if (!envApiKey) {
     throw new Error('⚠️ API Key chưa được cấu hình. Vui lòng nhập API key bằng nút "⚙️ API Key" ở góc trên bên phải.');
   }
