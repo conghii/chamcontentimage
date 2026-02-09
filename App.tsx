@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 import { Scene, Assets, GenerationSettings, AspectRatio, Quality, AssetData, ProductContext } from './types';
 import AssetUploader from './components/AssetUploader';
 import StoryboardCard from './components/StoryboardCard';
-
 import { ApiKeySettings } from './components/ApiKeySettings';
 import ImageEditorModal from './components/ImageEditorModal';
 import { splitPromptIntoScenes, generateSceneImage, generateProductTailoredPrompt, generatePromptsFromAssets } from './services/geminiService';
@@ -757,7 +756,6 @@ const App: React.FC = () => {
   const [isGeneratingAll, setIsGeneratingAll] = useState(false);
   const [globalError, setGlobalError] = useState<string | null>(null);
   const [zoomedImage, setZoomedImage] = useState<string | null>(null);
-
   const [showApiKeySettings, setShowApiKeySettings] = useState(false);
   const [editingSceneId, setEditingSceneId] = useState<number | null>(null);
 
@@ -895,7 +893,7 @@ const App: React.FC = () => {
     }
   };
 
-  const handleGenerateImage = async (id: number, refinementInstruction?: string, clickPoint?: { x: number, y: number }) => {
+  const handleGenerateImage = async (id: number, refinementInstruction?: string) => {
     const sceneToUpdate = scenes.find(s => s.id === id);
     if (!sceneToUpdate) return;
     await checkApiKeyRequirement();
@@ -907,7 +905,7 @@ const App: React.FC = () => {
     const isEditing = !!refinementInstruction;
 
     try {
-      const url = await generateSceneImage(sceneToUpdate, assets, settings, isEditing, refinementInstruction, clickPoint);
+      const url = await generateSceneImage(sceneToUpdate, assets, settings, isEditing, refinementInstruction);
       setScenes(prev => prev.map(s => s.id === id ? { ...s, imageUrl: url, isGenerating: false, error: undefined } : s));
     } catch (error: any) {
       setScenes(prev => prev.map(s => s.id === id ? { ...s, isGenerating: false, error: "Lỗi tạo hình ảnh" } : s));
@@ -951,9 +949,9 @@ const App: React.FC = () => {
     setEditingSceneId(id);
   };
 
-  const handleRegenerateFromEditor = (instruction: string, clickPoint?: { x: number, y: number }) => {
+  const handleRegenerateFromEditor = (instruction: string) => {
     if (editingSceneId !== null) {
-      handleGenerateImage(editingSceneId, instruction, clickPoint);
+      handleGenerateImage(editingSceneId, instruction);
       setEditingSceneId(null);
     }
   };
@@ -965,7 +963,6 @@ const App: React.FC = () => {
         showSettings={showApiKeySettings}
         onToggleSettings={() => setShowApiKeySettings(!showApiKeySettings)}
       />
-
       {zoomedImage && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-2xl animate-fade-in" onClick={() => setZoomedImage(null)}>
           <button className="absolute top-8 right-8 w-12 h-12 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-white transition-all z-[110]" onClick={() => setZoomedImage(null)}>
@@ -1120,7 +1117,7 @@ const App: React.FC = () => {
                 onUpdatePrompt={handleUpdateScenePrompt}
                 onZoom={(url) => setZoomedImage(url)}
                 showSuggestBtn={true}
-
+                showSuggestBtn={true}
                 onSuggestPrompt={handleSuggestPrompt}
                 onEdit={handleEditScene}
               />

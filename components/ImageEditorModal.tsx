@@ -1,20 +1,20 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 
 interface ImageEditorModalProps {
     isOpen: boolean;
     onClose: () => void;
     imageUrl: string;
     originalPrompt: string;
-    onRegenerate: (instruction: string, clickPoint?: { x: number, y: number }) => void;
+    onRegenerate: (instruction: string) => void;
     sceneTitle: string;
 }
 
 const QUICK_FIXES = [
-    { label: "Đối tượng quá to", instruction: "Make the selected subject smaller to fit better in the composition." },
-    { label: "Đối tượng quá nhỏ", instruction: "Make the selected subject larger and more prominent." },
-    { label: "Sai màu sắc", instruction: "Correct the colors of the selected area to match the reference product exactly." },
-    { label: "Xóa chi tiết thừa", instruction: "Remove any extra objects, artifacts, or clutter at the selected area." },
+    { label: "Đối tượng quá to", instruction: "Make the main subject smaller to fit better in the composition." },
+    { label: "Đối tượng quá nhỏ", instruction: "Make the main subject larger and more prominent." },
+    { label: "Sai màu sắc", instruction: "Correct the colors to match the reference product exactly." },
+    { label: "Xóa chi tiết thừa", instruction: "Remove any extra objects, artifacts, or clutter." },
     { label: "Sửa lỗi Text", instruction: "Fix the text spelling and ensure it is clearly visible." },
     { label: "Làm nét ảnh", instruction: "Upscale and sharpen details, improve lighting and textures." },
 ];
@@ -22,32 +22,15 @@ const QUICK_FIXES = [
 const ImageEditorModal: React.FC<ImageEditorModalProps> = ({ isOpen, onClose, imageUrl, originalPrompt, onRegenerate, sceneTitle }) => {
     const [instruction, setInstruction] = useState('');
     const [activeFix, setActiveFix] = useState<string | null>(null);
-    const [clickPoint, setClickPoint] = useState<{ x: number, y: number } | null>(null);
-    const imageRef = useRef<HTMLImageElement>(null);
 
     useEffect(() => {
         if (isOpen) {
             setInstruction('');
             setActiveFix(null);
-            setClickPoint(null);
         }
     }, [isOpen]);
 
     if (!isOpen) return null;
-
-    const handleImageClick = (e: React.MouseEvent<HTMLImageElement>) => {
-        if (!imageRef.current) return;
-
-        const rect = imageRef.current.getBoundingClientRect();
-        const x = ((e.clientX - rect.left) / rect.width) * 100;
-        const y = ((e.clientY - rect.top) / rect.height) * 100;
-
-        // Clamp values between 0 and 100
-        const clampedX = Math.max(0, Math.min(100, x));
-        const clampedY = Math.max(0, Math.min(100, y));
-
-        setClickPoint({ x: clampedX, y: clampedY });
-    };
 
     const handleFixClick = (fix: { label: string, instruction: string }) => {
         setInstruction(fix.instruction);
@@ -56,7 +39,7 @@ const ImageEditorModal: React.FC<ImageEditorModalProps> = ({ isOpen, onClose, im
 
     const handleRegenerate = () => {
         if (!instruction.trim()) return;
-        onRegenerate(instruction, clickPoint || undefined);
+        onRegenerate(instruction);
         onClose();
     };
 
@@ -75,62 +58,25 @@ const ImageEditorModal: React.FC<ImageEditorModalProps> = ({ isOpen, onClose, im
                 </button>
 
                 {/* LEFT: Image View */}
-                <div className="flex-1 bg-black/50 p-6 flex flex-col justify-center items-center relative border-r border-white/5 group/view">
-                    <h3 className="absolute top-6 left-6 text-xs font-black uppercase tracking-[0.2em] text-slate-500 z-10">
+                <div className="flex-1 bg-black/50 p-6 flex flex-col justify-center items-center relative border-r border-white/5">
+                    <h3 className="absolute top-6 left-6 text-xs font-black uppercase tracking-[0.2em] text-slate-500">
                         Đang chỉnh sửa: <span className="text-white">{sceneTitle}</span>
                     </h3>
 
                     <div className="relative w-full h-full flex items-center justify-center">
-                        <div className="relative inline-block">
-                            <img
-                                ref={imageRef}
-                                src={imageUrl}
-                                alt="Editing"
-                                onClick={handleImageClick}
-                                className="max-w-full max-h-full object-contain rounded-lg shadow-lg cursor-crosshair hover:ring-2 hover:ring-indigo-500/50 transition-all"
-                            />
-                            {/* Tap Hint */}
-                            {!clickPoint && (
-                                <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none opacity-0 group-hover/view:opacity-100 transition-opacity bg-black/70 px-4 py-2 rounded-full backdrop-blur-md border border-white/20">
-                                    <span className="text-[10px] text-white font-bold uppercase tracking-widest">Chạm vào đối tượng để chọn</span>
-                                </div>
-                            )}
-                            {/* Target Marker */}
-                            {clickPoint && (
-                                <div
-                                    className="absolute w-8 h-8 rounded-full border-2 border-indigo-500 bg-indigo-500/20 shadow-[0_0_15px_rgba(99,102,241,0.5)] flex items-center justify-center pointer-events-none animate-ping-once"
-                                    style={{
-                                        left: `${clickPoint.x}%`,
-                                        top: `${clickPoint.y}%`,
-                                        transform: 'translate(-50%, -50%)'
-                                    }}
-                                >
-                                    <div className="w-1.5 h-1.5 bg-white rounded-full shadow-sm"></div>
-                                </div>
-                            )}
-                        </div>
+                        <img
+                            src={imageUrl}
+                            alt="Editing"
+                            className="max-w-full max-h-full object-contain rounded-lg shadow-lg"
+                        />
                     </div>
 
-                    <div className="absolute bottom-6 left-6 right-6 z-10">
-                        <div className="bg-black/60 backdrop-blur-md rounded-xl p-3 border border-white/5 flex justify-between items-center gap-4">
-                            <p className="text-[10px] text-slate-400 font-medium line-clamp-2 flex-1">
+                    <div className="absolute bottom-6 left-6 right-6">
+                        <div className="bg-black/60 backdrop-blur-md rounded-xl p-3 border border-white/5">
+                            <p className="text-[10px] text-slate-400 font-medium line-clamp-2">
                                 <strong className="text-indigo-400 uppercase tracking-wider mr-2">Prompt Gốc:</strong>
                                 {originalPrompt}
                             </p>
-                            {clickPoint && (
-                                <div className="flex items-center gap-2 shrink-0">
-                                    <span className="text-[9px] font-black uppercase text-indigo-400 bg-indigo-500/10 px-2 py-1 rounded border border-indigo-500/20">
-                                        Đã chọn: {Math.round(clickPoint.x)}%, {Math.round(clickPoint.y)}%
-                                    </span>
-                                    <button
-                                        onClick={() => setClickPoint(null)}
-                                        className="text-slate-400 hover:text-white p-1"
-                                        title="Xóa vùng chọn"
-                                    >
-                                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
-                                    </button>
-                                </div>
-                            )}
                         </div>
                     </div>
                 </div>
@@ -151,7 +97,8 @@ const ImageEditorModal: React.FC<ImageEditorModalProps> = ({ isOpen, onClose, im
                                     <button
                                         key={fix.label}
                                         onClick={() => handleFixClick(fix)}
-                                        className={`text-left px-4 py-3 rounded-xl border transition-all flex items-center justify-between group ${activeFix === fix.label
+                                        className={`text-left px-4 py-3 rounded-xl border transition-all flex items-center justify-between group
+                      ${activeFix === fix.label
                                                 ? 'bg-indigo-600 border-indigo-500 text-white shadow-lg shadow-indigo-900/20'
                                                 : 'bg-slate-800/50 border-white/5 text-slate-300 hover:bg-slate-800 hover:border-white/10'
                                             }`}

@@ -1,5 +1,4 @@
 import path from 'path';
-// Trigger HMR restart
 import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 
