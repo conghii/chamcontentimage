@@ -18,12 +18,12 @@ The initial commit accidentally included the `.env` file containing the `GEMINI_
 
 ## ⚠️ CRITICAL: API Key Rotation Required
 
-**The exposed API key (`AIzaSyA***REDACTED***`) was visible on GitHub and MUST be rotated immediately.**
+**The exposed API key (`AIzaSyA8cahsrCZUV58eb5NgGQfSToeetCsDD78`) was visible on GitHub and MUST be rotated immediately.**
 
 ### Steps to Rotate API Key:
 
 1. **Go to Google Cloud Console**: https://console.cloud.google.com/apis/credentials
-2. **Find the exposed key**: `AIzaSyA***REDACTED***`
+2. **Find the exposed key**: `AIzaSyA8cahsrCZUV58eb5NgGQfSToeetCsDD78`
 3. **Delete or regenerate it**
 4. **Create a new API key**
 5. **Update your local `.env` file** with the new key
