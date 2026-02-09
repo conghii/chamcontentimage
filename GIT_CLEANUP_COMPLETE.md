@@ -43,7 +43,7 @@ Successfully removed the exposed `.env` file from **entire git history**.
 
 ### 1. **Rotate API Key Immediately**
 
-The exposed key `AIzaSyA8cahsrCZUV58eb5NgGQfSToeetCsDD78` was visible in git history.
+The exposed API key (example: `AIza****...redacted`) was visible in git history.
 
 **Steps to rotate:**
 1. Go to https://console.cloud.google.com/apis/credentials
