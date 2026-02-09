@@ -87,7 +87,7 @@ export const splitPromptIntoScenes = async (
   parts.push({ text: systemInstruction });
 
   const response = await callWithRetry<GenerateContentResponse>(() => ai.models.generateContent({
-    model: "gemini-3-flash-preview",
+    model: "gemini-2.0-flash-exp",
     contents: { parts },
     config: {
       responseMimeType: "application/json",
@@ -204,7 +204,7 @@ export const generateProductTailoredPrompt = async (assets: Assets, referenceTem
   });
 
   const response = await callWithRetry<GenerateContentResponse>(() => ai.models.generateContent({
-    model: "gemini-3-flash-preview",
+    model: "gemini-2.0-flash-exp",
     contents: { parts }
   }));
   return response.text?.trim() || "";
