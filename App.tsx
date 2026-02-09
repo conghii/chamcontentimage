@@ -3,7 +3,9 @@ import React, { useState } from 'react';
 import { Scene, Assets, GenerationSettings, AspectRatio, Quality, AssetData, ProductContext } from './types';
 import AssetUploader from './components/AssetUploader';
 import StoryboardCard from './components/StoryboardCard';
+
 import { ApiKeySettings } from './components/ApiKeySettings';
+import ImageEditorModal from './components/ImageEditorModal';
 import { splitPromptIntoScenes, generateSceneImage, generateProductTailoredPrompt, generatePromptsFromAssets } from './services/geminiService';
 
 // ==========================================
@@ -755,7 +757,9 @@ const App: React.FC = () => {
   const [isGeneratingAll, setIsGeneratingAll] = useState(false);
   const [globalError, setGlobalError] = useState<string | null>(null);
   const [zoomedImage, setZoomedImage] = useState<string | null>(null);
+
   const [showApiKeySettings, setShowApiKeySettings] = useState(false);
+  const [editingSceneId, setEditingSceneId] = useState<number | null>(null);
 
   // Check valid API key existence
   const checkApiKeyRequirement = async (): Promise<boolean> => {
@@ -891,7 +895,7 @@ const App: React.FC = () => {
     }
   };
 
-  const handleGenerateImage = async (id: number, refinementInstruction?: string) => {
+  const handleGenerateImage = async (id: number, refinementInstruction?: string, clickPoint?: { x: number, y: number }) => {
     const sceneToUpdate = scenes.find(s => s.id === id);
     if (!sceneToUpdate) return;
     await checkApiKeyRequirement();
@@ -903,7 +907,7 @@ const App: React.FC = () => {
     const isEditing = !!refinementInstruction;
 
     try {
-      const url = await generateSceneImage(sceneToUpdate, assets, settings, isEditing, refinementInstruction);
+      const url = await generateSceneImage(sceneToUpdate, assets, settings, isEditing, refinementInstruction, clickPoint);
       setScenes(prev => prev.map(s => s.id === id ? { ...s, imageUrl: url, isGenerating: false, error: undefined } : s));
     } catch (error: any) {
       setScenes(prev => prev.map(s => s.id === id ? { ...s, isGenerating: false, error: "Lỗi tạo hình ảnh" } : s));
@@ -942,6 +946,18 @@ const App: React.FC = () => {
 
 
 
+
+  const handleEditScene = (id: number) => {
+    setEditingSceneId(id);
+  };
+
+  const handleRegenerateFromEditor = (instruction: string, clickPoint?: { x: number, y: number }) => {
+    if (editingSceneId !== null) {
+      handleGenerateImage(editingSceneId, instruction, clickPoint);
+      setEditingSceneId(null);
+    }
+  };
+
   return (
     <div className="flex h-screen bg-slate-950 text-slate-100 selection:bg-indigo-500/30 overflow-hidden relative">
       <ApiKeySettings
@@ -949,6 +965,7 @@ const App: React.FC = () => {
         showSettings={showApiKeySettings}
         onToggleSettings={() => setShowApiKeySettings(!showApiKeySettings)}
       />
+
       {zoomedImage && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-2xl animate-fade-in" onClick={() => setZoomedImage(null)}>
           <button className="absolute top-8 right-8 w-12 h-12 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-white transition-all z-[110]" onClick={() => setZoomedImage(null)}>
@@ -957,6 +974,21 @@ const App: React.FC = () => {
           <img src={zoomedImage} className="max-w-full max-h-full object-contain rounded-xl shadow-2xl animate-scale-up" alt="Zoomed" onClick={(e) => e.stopPropagation()} />
         </div>
       )}
+
+      {editingSceneId !== null && (() => {
+        const scene = scenes.find(s => s.id === editingSceneId);
+        if (!scene || !scene.imageUrl) return null;
+        return (
+          <ImageEditorModal
+            isOpen={true}
+            onClose={() => setEditingSceneId(null)}
+            imageUrl={scene.imageUrl}
+            originalPrompt={scene.prompt}
+            sceneTitle={scene.title}
+            onRegenerate={handleRegenerateFromEditor}
+          />
+        );
+      })()}
 
       <aside className="w-80 flex flex-col border-r border-white/5 sidebar-gradient shrink-0 shadow-2xl z-10 overflow-hidden">
         <div className="p-6 h-full flex flex-col overflow-y-auto custom-scrollbar">
@@ -1088,7 +1120,9 @@ const App: React.FC = () => {
                 onUpdatePrompt={handleUpdateScenePrompt}
                 onZoom={(url) => setZoomedImage(url)}
                 showSuggestBtn={true}
+
                 onSuggestPrompt={handleSuggestPrompt}
+                onEdit={handleEditScene}
               />
             ))}
           </div>

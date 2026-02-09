@@ -10,16 +10,18 @@ interface StoryboardCardProps {
   onZoom: (imageUrl: string) => void;
   showSuggestBtn?: boolean;
   onSuggestPrompt?: (id: number) => void;
+  onEdit?: (id: number) => void;
 }
 
-const StoryboardCard: React.FC<StoryboardCardProps> = ({ 
-  scene, 
-  onRegenerate, 
-  onDownload, 
-  onUpdatePrompt, 
+const StoryboardCard: React.FC<StoryboardCardProps> = ({
+  scene,
+  onRegenerate,
+  onDownload,
+  onUpdatePrompt,
   onZoom,
   showSuggestBtn,
-  onSuggestPrompt
+  onSuggestPrompt,
+  onEdit
 }) => {
   const [showFixMenu, setShowFixMenu] = useState(false);
   const [fixInstruction, setFixInstruction] = useState('');
@@ -49,20 +51,39 @@ const StoryboardCard: React.FC<StoryboardCardProps> = ({
     setShowFixMenu(false);
   };
 
+  const handleImageClick = () => {
+    if (onEdit) {
+      onEdit(scene.id);
+    } else {
+      onZoom(scene.imageUrl!);
+    }
+  };
+
   return (
     <div className={`group glass rounded-3xl overflow-hidden flex flex-col transition-all duration-500 animate-fade-in border border-white/5
-      ${scene.isGenerating ? 'ring-2 ring-indigo-500/50 shadow-[0_0_40px_rgba(79,70,229,0.15)] scale-[1.01]' : 
+      ${scene.isGenerating ? 'ring-2 ring-indigo-500/50 shadow-[0_0_40px_rgba(79,70,229,0.15)] scale-[1.01]' :
         scene.error ? 'border-rose-500/20' : 'hover:border-indigo-500/30 hover:shadow-2xl hover:shadow-indigo-900/10'}`}>
-      
+
       {/* Visual Container */}
-      <div className="aspect-[16/10] bg-slate-950 relative overflow-hidden">
+      <div className="aspect-[16/10] bg-slate-950 relative overflow-hidden group/image">
         {scene.imageUrl && !scene.isGenerating && !scene.error ? (
-          <img 
-            src={scene.imageUrl} 
-            alt={scene.title} 
-            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 cursor-pointer" 
-            onClick={() => onZoom(scene.imageUrl!)}
-          />
+          <>
+            <img
+              src={scene.imageUrl}
+              alt={scene.title}
+              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 cursor-pointer"
+              onClick={handleImageClick}
+            />
+            {/* Edit overlay hint */}
+            <div className="absolute inset-0 bg-black/30 opacity-0 group-hover/image:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
+              <div className="bg-black/60 backdrop-blur-md px-4 py-2 rounded-full border border-white/20 flex items-center gap-2">
+                <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                </svg>
+                <span className="text-[10px] font-bold text-white uppercase tracking-wider">Chạm để sửa</span>
+              </div>
+            </div>
+          </>
         ) : (
           <div className="absolute inset-0 flex items-center justify-center flex-col bg-slate-900/50">
             {scene.isGenerating ? (
@@ -81,7 +102,7 @@ const StoryboardCard: React.FC<StoryboardCardProps> = ({
                   <span className="text-rose-500 font-bold">!</span>
                 </div>
                 <p className="text-[10px] text-rose-400 font-bold uppercase mb-4">{scene.error}</p>
-                <button 
+                <button
                   onClick={() => onRegenerate(scene.id)}
                   className="px-4 py-2 bg-rose-500/20 hover:bg-rose-500 text-rose-100 rounded-lg text-[9px] font-black uppercase transition-all"
                 >
@@ -98,20 +119,20 @@ const StoryboardCard: React.FC<StoryboardCardProps> = ({
             )}
           </div>
         )}
-        
-        {/* Quick Actions Overlay */}
+
+        {/* Quick Actions Overlay (Kept for secondary access) */}
         {scene.imageUrl && !scene.isGenerating && !scene.error && (
           <>
             {/* Fix Menu Overlay */}
             {showFixMenu && (
-              <div className="absolute inset-0 bg-slate-900/95 backdrop-blur-md z-20 flex flex-col p-6 animate-fade-in">
+              <div className="absolute inset-0 bg-slate-900/95 backdrop-blur-md z-20 flex flex-col p-6 animate-fade-in group-hover/image:invisible">
                 <div className="flex justify-between items-center mb-4">
                   <h4 className="text-xs font-black uppercase tracking-widest text-indigo-400">Công cụ sửa ảnh</h4>
                   <button onClick={() => setShowFixMenu(false)} className="text-slate-500 hover:text-white">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" /></svg>
                   </button>
                 </div>
-                
+
                 <div className="flex-1 flex flex-col gap-3">
                   {/* Option 1: Custom Text */}
                   <div className="relative">
@@ -122,7 +143,7 @@ const StoryboardCard: React.FC<StoryboardCardProps> = ({
                       onChange={(e) => setFixInstruction(e.target.value)}
                       className="w-full bg-slate-800 border border-white/10 rounded-lg px-3 py-3 text-xs focus:ring-1 focus:ring-indigo-500 outline-none"
                     />
-                    <button 
+                    <button
                       onClick={handleFixSubmit}
                       disabled={!fixInstruction}
                       className="absolute right-1 top-1 bottom-1 bg-indigo-600 hover:bg-indigo-500 text-white px-3 rounded-md text-[9px] font-bold uppercase disabled:opacity-50"
@@ -133,7 +154,7 @@ const StoryboardCard: React.FC<StoryboardCardProps> = ({
 
                   <div className="grid grid-cols-2 gap-2 mt-2">
                     {/* Option 2: Upscale */}
-                    <button 
+                    <button
                       onClick={() => handleQuickFix('UPSCALE')}
                       className="p-3 bg-slate-800 hover:bg-slate-700 border border-white/5 rounded-lg flex flex-col items-center gap-2 transition-all"
                     >
@@ -141,7 +162,7 @@ const StoryboardCard: React.FC<StoryboardCardProps> = ({
                       <span className="text-[9px] font-bold uppercase text-slate-300">Làm nét & Đẹp</span>
                     </button>
                     {/* Option 3: Variation */}
-                    <button 
+                    <button
                       onClick={() => handleQuickFix('VARIATION')}
                       className="p-3 bg-slate-800 hover:bg-slate-700 border border-white/5 rounded-lg flex flex-col items-center gap-2 transition-all"
                     >
@@ -156,7 +177,7 @@ const StoryboardCard: React.FC<StoryboardCardProps> = ({
             {/* Action Buttons */}
             <div className={`absolute bottom-4 right-4 flex gap-2 transition-opacity duration-300 ${showFixMenu ? 'opacity-0 pointer-events-none' : 'opacity-0 group-hover:opacity-100'}`}>
               <button
-                onClick={() => setShowFixMenu(true)}
+                onClick={() => onEdit ? onEdit(scene.id) : setShowFixMenu(true)}
                 className="w-10 h-10 bg-indigo-600/90 backdrop-blur-xl rounded-xl text-white border border-indigo-500/50 flex items-center justify-center hover:bg-indigo-500 transition-colors shadow-lg animate-pulse"
                 title="Sửa lỗi / Fix ảnh"
               >
@@ -187,12 +208,12 @@ const StoryboardCard: React.FC<StoryboardCardProps> = ({
         )}
 
         <div className="absolute top-4 left-4">
-           <span className="text-[9px] font-black px-3 py-1.5 rounded-xl uppercase tracking-[0.2em] bg-indigo-600 text-white shadow-lg">
+          <span className="text-[9px] font-black px-3 py-1.5 rounded-xl uppercase tracking-[0.2em] bg-indigo-600 text-white shadow-lg">
             Cảnh 0{scene.id}
           </span>
         </div>
       </div>
-      
+
       {/* Content Section */}
       <div className="p-5 flex flex-col flex-1 bg-slate-900/40">
         <div className="mb-4">
@@ -201,11 +222,11 @@ const StoryboardCard: React.FC<StoryboardCardProps> = ({
             {scene.title}
           </h3>
         </div>
-        
+
         <div className="flex-1">
           <div className="flex justify-between items-center mb-2">
             <span className="text-[8px] font-black uppercase tracking-[0.2em] text-slate-500 block">Kịch bản chi tiết (Enter để Sửa ảnh)</span>
-            
+
             <div className="flex gap-2">
               {/* Nút Suggest (Chỉ hiện khi showSuggestBtn = true) */}
               {showSuggestBtn && onSuggestPrompt && (
@@ -225,7 +246,7 @@ const StoryboardCard: React.FC<StoryboardCardProps> = ({
                 </button>
               )}
 
-              <button 
+              <button
                 onClick={() => onRegenerate(scene.id)}
                 disabled={scene.isGenerating}
                 className="text-[8px] font-black uppercase text-indigo-500 hover:text-indigo-400 disabled:opacity-30 transition-colors px-2 py-1 bg-indigo-500/5 rounded-md border border-indigo-500/10"
@@ -253,5 +274,4 @@ const StoryboardCard: React.FC<StoryboardCardProps> = ({
     </div>
   );
 };
-
 export default StoryboardCard;

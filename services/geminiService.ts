@@ -216,7 +216,8 @@ export const generateSceneImage = async (
   assets: Assets,
   settings: GenerationSettings,
   isEditing: boolean,
-  refinementInstruction?: string
+  refinementInstruction?: string,
+  targetPoint?: { x: number, y: number }
 ): Promise<string> => {
   const ai = new GoogleGenAI({ apiKey: getApiKey() });
   const isHighQuality = settings.quality === "High";
@@ -314,7 +315,13 @@ export const generateSceneImage = async (
     parts.push({ inlineData: { mimeType: "image/png", data: scene.imageUrl.split(",")[1] } });
     parts.push({ text: `[IMAGE TO EDIT]: The image above is the current generated result.` });
 
-    const instr = refinementInstruction || "Improve the quality and realism of this image.";
+    let instr = refinementInstruction || "Improve the quality and realism of this image.";
+
+    // Append COORDINATE TARGETING if point is selected
+    if (targetPoint) {
+      instr += `\n\n[IMPORTANT FOCUS]: Apply changes specifically to the object located at coordinates (X: ${Math.round(targetPoint.x)}%, Y: ${Math.round(targetPoint.y)}%). Focus ONLY on this area and its immediate context.`;
+    }
+
     parts.push({ text: `[TASK]: EDIT the [IMAGE TO EDIT] based on this instruction: "${instr}". Maintain the product identity from reference images. Context: ${contextStyle}` });
   } else {
     // GENERATION MODE: Ignore previous image, start fresh from prompt
