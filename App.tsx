@@ -1117,7 +1117,6 @@ const App: React.FC = () => {
                 onUpdatePrompt={handleUpdateScenePrompt}
                 onZoom={(url) => setZoomedImage(url)}
                 showSuggestBtn={true}
-                showSuggestBtn={true}
                 onSuggestPrompt={handleSuggestPrompt}
                 onEdit={handleEditScene}
               />
