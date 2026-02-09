@@ -47,7 +47,7 @@ The exposed API key (example: `AIza****...redacted`) was visible in git history.
 
 **Steps to rotate:**
 1. Go to https://console.cloud.google.com/apis/credentials
-2. Find and **delete** the old key: `AIzaSyA8cahsrCZUV58eb5NgGQfSToeetCsDD78`
+2. Find and **delete** the old exposed key (starts with `AIza...`)
 3. **Create new API key**
 4. **Update local** `.env` file with new key:
    ```
