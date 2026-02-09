@@ -755,17 +755,27 @@ const App: React.FC = () => {
   const [isGeneratingAll, setIsGeneratingAll] = useState(false);
   const [globalError, setGlobalError] = useState<string | null>(null);
   const [zoomedImage, setZoomedImage] = useState<string | null>(null);
+  const [showApiKeySettings, setShowApiKeySettings] = useState(false);
 
+  // Check valid API key existence
   const checkApiKeyRequirement = async (): Promise<boolean> => {
-    const aistudio = (window as any).aistudio;
-    if (aistudio) {
-      const hasKey = await aistudio.hasSelectedApiKey();
-      if (!hasKey) {
-        await aistudio.openSelectKey();
-        return true;
-      }
-    }
-    return true;
+    // 1. Check LocalStorage
+    const localKey = localStorage.getItem('gemini_api_key');
+    if (localKey && localKey.trim()) return true;
+
+    // 2. Check Environment Variable
+    // Note: We access this safely to avoid crashes if env is missing
+    const envKey = import.meta.env.VITE_GEMINI_API_KEY || import.meta.env.GEMINI_API_KEY;
+    if (envKey) return true;
+
+    // 3. No key found -> Open Settings and show alert
+    setShowApiKeySettings(true);
+    alert('⚠️ Bạn cần nhập API Key để sử dụng tính năng này!\nVui lòng nhập key trong bảng cài đặt vừa hiện ra.');
+    return false;
+  };
+
+  const handleApiKeyChange = (key: string) => {
+    console.log('API Key updated:', key ? 'Set' : 'Cleared');
   };
 
   const handleContextChange = async (newContext: ProductContext) => {
@@ -936,7 +946,11 @@ const App: React.FC = () => {
 
   return (
     <div className="flex h-screen bg-slate-950 text-slate-100 selection:bg-indigo-500/30 overflow-hidden relative">
-      <ApiKeySettings onApiKeyChange={handleApiKeyChange} />
+      <ApiKeySettings
+        onApiKeyChange={handleApiKeyChange}
+        showSettings={showApiKeySettings}
+        onToggleSettings={() => setShowApiKeySettings(!showApiKeySettings)}
+      />
       {zoomedImage && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-2xl animate-fade-in" onClick={() => setZoomedImage(null)}>
           <button className="absolute top-8 right-8 w-12 h-12 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-white transition-all z-[110]" onClick={() => setZoomedImage(null)}>

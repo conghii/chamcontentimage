@@ -2,12 +2,13 @@ import React, { useState, useEffect } from 'react';
 
 interface ApiKeySettingsProps {
     onApiKeyChange: (apiKey: string) => void;
+    showSettings: boolean;
+    onToggleSettings: () => void;
 }
 
-export function ApiKeySettings({ onApiKeyChange }: ApiKeySettingsProps) {
+export function ApiKeySettings({ onApiKeyChange, showSettings, onToggleSettings }: ApiKeySettingsProps) {
     const [apiKey, setApiKey] = useState('');
     const [isVisible, setIsVisible] = useState(false);
-    const [showSettings, setShowSettings] = useState(false);
     const [isSaved, setIsSaved] = useState(false);
 
     useEffect(() => {
@@ -25,7 +26,7 @@ export function ApiKeySettings({ onApiKeyChange }: ApiKeySettingsProps) {
             localStorage.setItem('gemini_api_key', apiKey.trim());
             onApiKeyChange(apiKey.trim());
             setIsSaved(true);
-            setShowSettings(false);
+            onToggleSettings(); // Close on save
             alert('✅ API Key đã được lưu thành công!');
         } else {
             alert('⚠️ Vui lòng nhập API key');
@@ -50,7 +51,7 @@ export function ApiKeySettings({ onApiKeyChange }: ApiKeySettingsProps) {
         }}>
             {/* Settings Button */}
             <button
-                onClick={() => setShowSettings(!showSettings)}
+                onClick={onToggleSettings}
                 style={{
                     padding: '10px 20px',
                     backgroundColor: isSaved ? '#4CAF50' : '#FF9800',
