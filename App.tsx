@@ -940,9 +940,7 @@ const App: React.FC = () => {
     }
   };
 
-  const handleApiKeyChange = (key: string) => {
-    console.log('API Key updated:', key ? 'Set' : 'Cleared');
-  };
+
 
   return (
     <div className="flex h-screen bg-slate-950 text-slate-100 selection:bg-indigo-500/30 overflow-hidden relative">
