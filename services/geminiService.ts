@@ -1,5 +1,5 @@
 
-import { GoogleGenAI, Type, GenerateContentResponse } from "@google/genai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import { Scene, Assets, GenerationSettings, ProductContext } from "../types";
 import { analyzeProductIdentity, getConsistencyPrompt, ProductIdentity } from "./productAnalyzer";
 
@@ -41,7 +41,7 @@ export const splitPromptIntoScenes = async (
   context: ProductContext,
   templates: string[]
 ): Promise<Scene[]> => {
-  const ai = new GoogleGenAI({ apiKey: getApiKey() });
+  const ai = new GoogleGenerativeAI({ apiKey: getApiKey() });
   const sceneCount = context === 'LISTING' ? 6 : 5;
   const contextLabel = context === 'LISTING' ? "Amazon Product Listing Images (STANDARD)" : "Amazon A+ Content (BRAND STORY)";
 
@@ -87,7 +87,7 @@ export const splitPromptIntoScenes = async (
   parts.push({ text: systemInstruction });
 
   const response = await callWithRetry<GenerateContentResponse>(() => ai.models.generateContent({
-    model: "gemini-2.0-flash-exp",
+    model: "gemini-3-flash-preview",
     contents: { parts },
     config: {
       responseMimeType: "application/json",
@@ -122,7 +122,7 @@ export const splitPromptIntoScenes = async (
 };
 
 export const generatePromptsFromAssets = async (assets: Assets, context: ProductContext, templates: string[]): Promise<{ id: number; prompt: string }[]> => {
-  const ai = new GoogleGenAI({ apiKey: getApiKey() });
+  const ai = new GoogleGenerativeAI({ apiKey: getApiKey() });
   const sceneCount = context === 'LISTING' ? 6 : 5;
   const contextLabel = context === 'LISTING' ? "Standard Product Listing" : "Amazon A+ Content (Brand Story)";
   const negativeContext = context === 'LISTING' ? "Do not use A+ Content layouts." : "Do not use Standard White Background Listing layouts.";
@@ -159,7 +159,7 @@ export const generatePromptsFromAssets = async (assets: Assets, context: Product
   });
 
   const response = await callWithRetry<GenerateContentResponse>(() => ai.models.generateContent({
-    model: "gemini-2.0-flash-exp",
+    model: "gemini-3-flash-preview",
     contents: { parts },
     config: {
       responseMimeType: "application/json",
@@ -189,7 +189,7 @@ export const generatePromptsFromAssets = async (assets: Assets, context: Product
 };
 
 export const generateProductTailoredPrompt = async (assets: Assets, referenceTemplate: string, context: ProductContext): Promise<string> => {
-  const ai = new GoogleGenAI({ apiKey: getApiKey() });
+  const ai = new GoogleGenerativeAI({ apiKey: getApiKey() });
   const contextLabel = context === 'LISTING' ? "Standard Product Listing" : "Amazon A+ Content";
   const parts: any[] = [];
 
@@ -204,7 +204,7 @@ export const generateProductTailoredPrompt = async (assets: Assets, referenceTem
   });
 
   const response = await callWithRetry<GenerateContentResponse>(() => ai.models.generateContent({
-    model: "gemini-2.0-flash-exp",
+    model: "gemini-3-flash-preview",
     contents: { parts }
   }));
   return response.text?.trim() || "";
@@ -217,7 +217,7 @@ export const generateSceneImage = async (
   isEditing: boolean,
   refinementInstruction?: string
 ): Promise<string> => {
-  const ai = new GoogleGenAI({ apiKey: getApiKey() });
+  const ai = new GoogleGenerativeAI({ apiKey: getApiKey() });
   const isHighQuality = settings.quality === "High";
   const modelName = isHighQuality ? "gemini-3-pro-image-preview" : "gemini-2.5-flash-image";
   const contextStyle = settings.productContext === 'LISTING' ? "E-commerce Listing: Clean studio, high contrast." : "Amazon A+ Content: Cinematic, luxury brand storytelling, editorial look.";

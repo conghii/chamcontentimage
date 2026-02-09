@@ -1,5 +1,5 @@
 
-import { GoogleGenAI, Type, GenerateContentResponse } from "@google/genai";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import { Assets } from "../types";
 
 /**
@@ -37,7 +37,7 @@ export const analyzeProductIdentity = async (assets: Assets): Promise<ProductIde
         ? localStorage.getItem('gemini_api_key')!.trim()
         : (import.meta.env as any).VITE_GEMINI_API_KEY || (import.meta.env as any).GEMINI_API_KEY;
 
-    const ai = new GoogleGenAI({ apiKey });
+    const ai = new GoogleGenerativeAI({ apiKey });
 
     const parts: any[] = [];
 
